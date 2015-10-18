@@ -1,0 +1,563 @@
+/**
+* A UPPAAL model of adaptive (CAN) message composition.
+* Copyright (C) 2015 Hang Yin
+* 
+* This model is free software; you can redistribute it and/or 
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either 
+* the current version of the License, or (at your option) any later version.
+* 
+* This model is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty 
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+* See the GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License 
+* along with this program; if not, write to the Free Software Foundation, 
+* Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+*/
+
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+int ID=0;
+const int canN=2;
+const int none=0;
+
+//---Return result of Message B
+const int only1=1;
+const int only2=2;
+const int complete=3;
+
+bool allReceived[canN]={false,false};//For Message B
+
+urgent broadcast chan Go;
+urgent chan startTimer;
+chan message[canN];//For Message B</declaration>
+	<template>
+		<name x="5" y="5">CAN0</name>
+		<declaration>// Place local declarations here.
+const int N=3;//N is the number of expected messages from this CAN bus; messages with the same ID are counted as 1; 
+//messages not expected to construct any high-level message are counted as 1.
+int list[N+1]={10,11,14,0};//0 means unwanted message
+clock x;
+
+
+
+
+                
+                    
+</declaration>
+		<location id="id0" x="17" y="-102">
+			<name x="0" y="-136">Send</name>
+			<committed/>
+		</location>
+		<location id="id1" x="-187" y="-102">
+			<name x="-221" y="-136">Ready</name>
+			<label kind="invariant" x="-246" y="-110">x&lt;=1</label>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-119" y="-59">message[0]!</label>
+			<label kind="assignment" x="-102" y="-42">x=0</label>
+			<nail x="17" y="-42"/>
+			<nail x="-187" y="-42"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="select" x="-136" y="-144">canid:int[0,N]</label>
+			<label kind="guard" x="-102" y="-127">x&gt;=1</label>
+			<label kind="assignment" x="-127" y="-102">ID=list[canid]</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">CAN1</name>
+		<declaration>// Place local declarations here.
+const int N=3;//N is the number of expected messages from this CAN bus; messages with the same ID are counted as 1; 
+//messages not expected to construct any high-level message are counted as 1.
+int list[N+1]={12,13,15,0};//0 means unwanted message
+clock x;
+
+
+
+
+                
+                    
+</declaration>
+		<location id="id2" x="17" y="-102">
+			<name x="0" y="-136">Send</name>
+			<committed/>
+		</location>
+		<location id="id3" x="-187" y="-102">
+			<name x="-212" y="-144">Ready</name>
+			<label kind="invariant" x="-246" y="-110">x&lt;=1</label>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-119" y="-59">message[1]!</label>
+			<label kind="assignment" x="-93" y="-42">x=0</label>
+			<nail x="17" y="-42"/>
+			<nail x="-187" y="-42"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="select" x="-127" y="-144">canid:int[0,N]</label>
+			<label kind="guard" x="-102" y="-127">x&gt;=1</label>
+			<label kind="assignment" x="-127" y="-102">ID=list[canid]</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReceiverA</name>
+		<declaration>int[0,3] result=0;</declaration>
+		<location id="id4" x="153" y="-8">
+			<name x="143" y="-42">State2</name>
+			<committed/>
+		</location>
+		<location id="id5" x="-59" y="-8">
+			<name x="-76" y="-42">State1</name>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="0" y="59">result=none</label>
+			<nail x="153" y="59"/>
+			<nail x="-59" y="59"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="17" y="-42">ID==10</label>
+			<label kind="synchronisation" x="0" y="-25">message[0]?</label>
+			<label kind="assignment" x="0" y="-8">result=complete</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReceiverB</name>
+		<declaration>//11,14 from CAN 0 and 12,15 from CAN 1
+
+clock x;
+int[0,3] result=0;
+
+void sendInCompleteResult()
+{
+    if(allReceived[0])
+    {
+        result=only1;
+    }
+    else
+    {
+        result=only2;
+    }
+}</declaration>
+		<location id="id6" x="-221" y="-110">
+			<name x="-280" y="-144">Temporary</name>
+			<committed/>
+		</location>
+		<location id="id7" x="25" y="-17">
+			<name x="33" y="-51">State2</name>
+			<label kind="invariant" x="42" y="-25">x&lt;=5</label>
+		</location>
+		<location id="id8" x="-221" y="-17">
+			<name x="-280" y="-25">State1</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-246" y="-85">Go!</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-195" y="-144">!(allReceived[0] &amp;&amp; allReceived[1])
+&amp;&amp; x&gt;=5</label>
+			<label kind="assignment" x="-170" y="-110">sendInCompleteResult()</label>
+			<nail x="25" y="-110"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-204" y="51">allReceived[0] &amp;&amp; allReceived[1]</label>
+			<label kind="synchronisation" x="-110" y="68">Go!</label>
+			<label kind="assignment" x="-153" y="85">result=complete</label>
+			<nail x="25" y="85"/>
+			<nail x="-221" y="85"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-204" y="-51">allReceived[0] || allReceived[1]</label>
+			<label kind="synchronisation" x="-144" y="-34">startTimer!</label>
+			<label kind="assignment" x="-110" y="-17">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReceiverBcan0</name>
+		<declaration>//11,14 from CAN 0
+
+const int N=2;//The number of expected messages from CAN0
+int expectedID[N]={11,14};
+bool received[N]={false,false};
+
+void reset()
+{
+    int[0,N] index=0;
+    for(index=0;index&lt;N;index++)
+    {
+        received[index]=false;
+    }
+    allReceived[0]=false;
+}
+
+void updateReceiveList(int[0,N-1] current)
+{
+    int[0,N] index=0;
+    received[current]=true;
+    for(index=current+1;index&lt;N;index++)
+    {
+        received[index]=false;
+    }
+}
+
+
+void updateLocalBuffer()
+{
+    int[0,N] index=0;
+    int[0,N] index2=0;
+    for(index=0;index&lt;N;index++)
+    {
+        if(ID==expectedID[index])
+        {
+            if(index==0)
+            {
+                updateReceiveList(index);
+                return;
+            }
+            else
+            {
+                for(index2=0;index2&lt;index;index2++)
+                {
+                    if(!received[index2])
+                    {
+                        return;
+                    }
+                }
+                updateReceiveList(index);
+                if(index==N-1)
+                {
+                    allReceived[0]=true;
+                }
+            }
+        }
+    }
+}</declaration>
+		<location id="id9" x="-177" y="102">
+			<name x="-153" y="93">State3</name>
+		</location>
+		<location id="id10" x="-178" y="-17">
+			<name x="-195" y="-51">State2</name>
+		</location>
+		<location id="id11" x="-391" y="-17">
+			<name x="-450" y="-25">State1</name>
+		</location>
+		<init ref="id11"/>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-297" y="85">Go?</label>
+			<label kind="assignment" x="-306" y="102">reset()</label>
+			<nail x="-391" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-229" y="153">ID==11 || ID==14</label>
+			<label kind="synchronisation" x="-212" y="170">message[0]?</label>
+			<nail x="-221" y="153"/>
+			<nail x="-127" y="153"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-399" y="-76">Go?</label>
+			<label kind="assignment" x="-416" y="-59">reset()</label>
+			<nail x="-357" y="-59"/>
+			<nail x="-433" y="-59"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-297" y="8">Go?</label>
+			<label kind="assignment" x="-306" y="25">reset()</label>
+			<nail x="-229" y="25"/>
+			<nail x="-331" y="25"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-195" y="25">ID==14</label>
+			<label kind="synchronisation" x="-212" y="42">message[0]?</label>
+			<label kind="assignment" x="-238" y="59">updateLocalBuffer()</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-102" y="-34">ID==11</label>
+			<label kind="synchronisation" x="-110" y="-17">message[0]?</label>
+			<nail x="-119" y="-51"/>
+			<nail x="-119" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-527" y="-34">ID==14</label>
+			<label kind="synchronisation" x="-544" y="-17">message[0]?</label>
+			<nail x="-459" y="-51"/>
+			<nail x="-459" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-323" y="-51">ID==11</label>
+			<label kind="synchronisation" x="-332" y="-34">message[0]?</label>
+			<label kind="assignment" x="-340" y="-17">updateLocalBuffer()</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReceiverBcan1</name>
+		<declaration>//12,15 from CAN 1
+
+const int N=2;//The number of expected messages from CAN1
+int expectedID[N]={12,15};
+bool received[N]={false,false};
+
+void reset()
+{
+    int[0,N] index=0;
+    for(index=0;index&lt;N;index++)
+    {
+        received[index]=false;
+    }
+    allReceived[1]=false;
+}
+
+void updateReceiveList(int[0,N-1] current)
+{
+    int[0,N] index=0;
+    received[current]=true;
+    for(index=current+1;index&lt;N;index++)
+    {
+        received[index]=false;
+    }
+}
+
+
+void updateLocalBuffer()
+{
+    int[0,N] index=0;
+    int[0,N] index2=0;
+    for(index=0;index&lt;N;index++)
+    {
+        if(ID==expectedID[index])
+        {
+            if(index==0)
+            {
+                updateReceiveList(index);
+                return;
+            }
+            else
+            {
+                for(index2=0;index2&lt;index;index2++)
+                {
+                    if(!received[index2])
+                    {
+                        return;
+                    }
+                }
+                updateReceiveList(index);
+                if(index==N-1)
+                {
+                    allReceived[1]=true;
+                }
+            }
+        }
+    }
+}</declaration>
+		<location id="id12" x="-178" y="110">
+			<name x="-161" y="102">State3</name>
+		</location>
+		<location id="id13" x="-178" y="-17">
+			<name x="-195" y="-51">State2</name>
+		</location>
+		<location id="id14" x="-391" y="-17">
+			<name x="-450" y="-25">State1</name>
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-297" y="93">Go?</label>
+			<label kind="assignment" x="-305" y="110">reset()</label>
+			<nail x="-391" y="110"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-229" y="170">ID==12 || ID==15</label>
+			<label kind="synchronisation" x="-212" y="187">message[1]?</label>
+			<nail x="-221" y="170"/>
+			<nail x="-127" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-407" y="-85">Go?</label>
+			<label kind="assignment" x="-416" y="-68">reset()</label>
+			<nail x="-348" y="-68"/>
+			<nail x="-441" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-297" y="8">Go?</label>
+			<label kind="assignment" x="-306" y="25">reset()</label>
+			<nail x="-246" y="25"/>
+			<nail x="-323" y="25"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-204" y="17">ID==15</label>
+			<label kind="synchronisation" x="-229" y="34">message[1]?</label>
+			<label kind="assignment" x="-246" y="51">updateLocalBuffer()</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-102" y="-34">ID==12</label>
+			<label kind="synchronisation" x="-110" y="-17">message[1]?</label>
+			<nail x="-119" y="-59"/>
+			<nail x="-119" y="25"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-527" y="-42">ID==15</label>
+			<label kind="synchronisation" x="-544" y="-25">message[1]?</label>
+			<nail x="-459" y="-68"/>
+			<nail x="-459" y="25"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-323" y="-51">ID==12</label>
+			<label kind="synchronisation" x="-332" y="-34">message[1]?</label>
+			<label kind="assignment" x="-357" y="-17">updateLocalBuffer()</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReceiverC</name>
+		<declaration>int[0,3] result=0;</declaration>
+		<location id="id15" x="153" y="-8">
+			<name x="143" y="-42">State2</name>
+			<committed/>
+		</location>
+		<location id="id16" x="-59" y="-8">
+			<name x="-76" y="-42">State1</name>
+		</location>
+		<init ref="id16"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id16"/>
+			<label kind="assignment" x="0" y="59">result=none</label>
+			<nail x="153" y="59"/>
+			<nail x="-59" y="59"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="guard" x="8" y="-42">ID==13</label>
+			<label kind="synchronisation" x="0" y="-25">message[1]?</label>
+			<label kind="assignment" x="-17" y="-8">result=complete</label>
+		</transition>
+	</template>
+	<template>
+		<name>BackupReceiver</name>
+		<declaration>//This is only a modeling artifact.</declaration>
+		<location id="id17" x="0" y="0">
+			<name x="17" y="-8">Operating</name>
+		</location>
+		<init ref="id17"/>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-42" y="-76">startTimer?</label>
+			<nail x="-68" y="-59"/>
+			<nail x="68" y="-59"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="select" x="-51" y="51">n:int[0,canN-1]</label>
+			<label kind="guard" x="-25" y="68">ID==0</label>
+			<label kind="synchronisation" x="-42" y="85">message[n]?</label>
+			<nail x="-68" y="68"/>
+			<nail x="76" y="68"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+
+system CAN0,CAN1,ReceiverA,ReceiverB,ReceiverBcan0,ReceiverBcan1,ReceiverC,BackupReceiver;</system>
+	<queries>
+		<query>
+			<formula>A[] ReceiverB.Temporary imply (allReceived[0] || allReceived[1])
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ReceiverB.Temporary
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>ID==10--&gt;ReceiverA.result==complete
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ReceiverB.State2
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>!ReceiverB.State1 &amp;&amp; (forall (i:int[0,1]) allReceived[i]) --&gt;ReceiverB.State1 &amp;&amp; ReceiverB.result==complete
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>!ReceiverB.State1 &amp;&amp; (allReceived[0] &amp;&amp; allReceived[1]) --&gt;ReceiverB.State1 &amp;&amp; ReceiverB.result==complete
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] not deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>
